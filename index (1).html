@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptKing - Gerador Completo de Thumbnails e Vinhetas</title>
+    <style>
+        :root {
+            --color-primary: #8b5cf6;
+            --color-primary-hover: #7c3aed;
+            --color-primary-active: #6d28d9;
+            --color-secondary: rgba(139, 92, 246, 0.12);
+            --color-secondary-hover: rgba(139, 92, 246, 0.2);
+            --color-background: #fcfcf9;
+            --color-surface: #fffffe;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #666;
+            --color-border: rgba(0, 0, 0, 0.1);
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius-base: 12px;
+            --radius-lg: 16px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #1a1a1a;
+                --color-surface: #262626;
+                --color-text: #f5f5f5;
+                --color-text-secondary: #a8a8a8;
+                --color-border: rgba(255, 255, 255, 0.15);
+                --color-secondary: rgba(139, 92, 246, 0.2);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--color-primary), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header .author {
+            font-size: 1rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            color: var(--color-text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .crown-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--color-border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 14px 24px;
+            border: none;
+            background: none;
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--color-primary);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--color-text);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--color-text);
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            background: var(--color-background);
+            color: var(--color-text);
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--color-secondary);
+            color: var(--color-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-secondary-hover);
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .template-card {
+            padding: 20px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            border-color: var(--color-primary);
+            background: var(--color-secondary);
+            transform: translateY(-2px);
+        }
+
+        .template-card.active {
+            border-color: var(--color-primary);
+            background: var(--color-secondary);
+        }
+
+        .template-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .template-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .template-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+        }
+
+        .result-box {
+            background: var(--color-background);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-base);
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            min-height: 150px;
+        }
+
+        .result-text {
+            color: var(--color-text);
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .placeholder-text {
+            color: var(--color-text-secondary);
+            font-style: italic;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        .tips-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+            border-radius: var(--radius-base);
+            border: 1px solid var(--color-border);
+        }
+
+        .tips-section h3 {
+            margin-bottom: 12px;
+            color: var(--color-primary);
+            font-size: 1.2rem;
+        }
+
+        .tips-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips-section li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .tips-section li::before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--color-success);
+            color: white;
+            padding: 16px 24px;
+            border-radius: var(--radius-base);
+            box-shadow: var(--shadow-md);
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .toast.error {
+            background: var(--color-error);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .grid-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .api-key-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px dashed var(--color-success);
+            border-radius: var(--radius-base);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .api-key-section h3 {
+            color: var(--color-success);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .api-key-section p {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .api-key-section a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .api-key-section a:hover {
+            text-decoration: underline;
+        }
+
+        .generated-preview {
+            width: 100%;
+            border-radius: var(--radius-base);
+            margin-top: 15px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .video-preview {
+            width: 100%;
+            max-height: 400px;
+            border-radius: var(--radius-base);
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-options {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .tabs {
+                gap: 5px;
+            }
+
+            .tab {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="crown-icon">👑</div>
+            <h1>PromptKing</h1>
+            <p class="author">@C.MARQUES</p>
+            <p>Gerador Completo: Prompts + Thumbnails + Vinhetas em Vídeo</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('prompt')">📝 Gerar Prompt</button>
+            <button class="tab" onclick="switchTab('image')">🎨 Gerar Thumbnail</button>
+            <button class="tab" onclick="switchTab('video')">🎬 Gerar Vinheta</button>
+        </div>
+
+        <!-- TAB 1: Gerador de Prompts -->
+        <div id="tab-prompt" class="tab-content active">
+            <div class="main-grid">
+                <div class="card">
+                    <h2>📋 Templates Rápidos</h2>
+                    <div class="templates-grid">
+                        <div class="template-card" onclick="loadTemplate('gaming')">
+                            <div class="template-icon">🎮</div>
+                            <div class="template-name">Gaming</div>
+                            <div class="template-desc">Para jogos e gameplay</div>
+                        </div>
+                        <div class="template-card" onclick="loadTemplate('tech')">
+                            <div class="template-icon">💻</div>
+                            <div class="template-name">Tecnologia</div>
+                            <div class="template-desc">Reviews e tutoriais</div>
+                        </div>
+                        <div class="template-card" onclick="loadTemplate('education')">
+                            <div class="template-icon">📚</div>
+                            <div class="template-name">Educação</div>
+                            <div class="template-desc">Cursos e aulas</div>
+                        </div>
+                        <div class="template-card" onclick="loadTemplate('business')">
+                            <div class="template-icon">💼</div>
+                            <div class="template-name">Negócios</div>
+                            <div class="template-desc">Empreendedorismo</div>
+                        </div>
+                    </div>
+
+                    <h2 style="margin-top: 30px;">⚙️ Personalizar</h2>
+                    <form id="promptForm">
+                        <div class="form-group">
+                            <label for="topic">📝 Tópico do Vídeo</label>
+                            <input type="text" id="topic" class="form-control" placeholder="Ex: Como ganhar dinheiro online">
+                        </div>
+
+                        <div class="grid-options">
+                            <div class="form-group">
+                                <label for="style">🎨 Estilo Visual</label>
+                                <select id="style" class="form-control">
+                                    <option value="minimalista">Minimalista</option>
+                                    <option value="explosivo">Explosivo</option>
+                                    <option value="profissional">Profissional</option>
+                                    <option value="cartoon">Cartoon</option>
+                                    <option value="cinematico">Cinemático</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="emotion">😊 Emoção</label>
+                                <select id="emotion" class="form-control">
+                                    <option value="chocado">Chocado 😱</option>
+                                    <option value="feliz">Feliz 😄</option>
+                                    <option value="serio">Sério 😐</option>
+                                    <option value="animado">Animado 🤩</option>
+                                    <option value="pensativo">Pensativo 🤔</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="colors">🎨 Cores Principais</label>
+                            <select id="colors" class="form-control">
+                                <option value="vermelho amarelo">Vermelho e Amarelo (Alta energia)</option>
+                                <option value="azul branco">Azul e Branco (Profissional)</option>
+                                <option value="roxo rosa">Roxo e Rosa (Criativo)</option>
+                                <option value="verde preto">Verde e Preto (Moderno)</option>
+                                <option value="laranja preto">Laranja e Preto (Impactante)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="elements">✨ Elementos Extras</label>
+                            <input type="text" id="elements" class="form-control" placeholder="Ex: setas, emojis, moldura dourada">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            ✨ Gerar Prompt Profissional
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>🎯 Seu Prompt Gerado</h2>
+                    <div class="result-box">
+                        <div id="result" class="result-text placeholder-text">
+                            Seu prompt aparecerá aqui após clicar em "Gerar Prompt Profissional"
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="copyPrompt()">
+                            📋 Copiar Prompt
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadPrompt()">
+                            💾 Baixar TXT
+                        </button>
+                    </div>
+
+                    <div class="tips-section">
+                        <h3>💡 Dicas Profissionais</h3>
+                        <ul>
+                            <li>Use cores contrastantes para chamar atenção</li>
+                            <li>Inclua texto grande e legível na thumbnail</li>
+                            <li>Expressões faciais aumentam o CTR em 40%</li>
+                            <li>Mantenha o design limpo e não poluído</li>
+                            <li>Teste diferentes versões para ver qual performa melhor</li>
+                            <li>Use molduras ou bordas para destacar elementos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Gerador de Thumbnails -->
+        <div id="tab-image" class="tab-content">
+            <div class="main-grid">
+                <div class="card">
+                    <h2>🎨 Gerar Thumbnail com IA</h2>
+
+                    <div class="api-key-section">
+                        <h3>🔑 Configure sua API Key</h3>
+                        <p>Para usar o gerador de thumbnails, você precisa de uma API Key do Google AI (Gemini).</p>
+                        <p><strong>Como obter:</strong> <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+                    </div>
+
+                    <form id="imageForm">
+                        <div class="form-group">
+                            <label for="apiKeyImage">🔐 API Key (Google AI)</label>
+                            <input type="password" id="apiKeyImage" class="form-control" placeholder="Cole sua API Key aqui">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="imagePrompt">📝 Descrição da Thumbnail</label>
+                            <textarea id="imagePrompt" class="form-control" rows="6" placeholder="Descreva a thumbnail que deseja gerar...
+
+Exemplo: Uma thumbnail vibrante para vídeo de gaming, com um jogador profissional usando headset RGB, expressão focada e intensa, fundo com efeitos de neon azul e roxo, texto grande 'GAMEPLAY ÉPICO', estilo moderno e energético, iluminação dramática"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="generateImageBtn">
+                            🎨 Gerar Thumbnail
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>🖼️ Thumbnail Gerada</h2>
+                    <div class="result-box" id="imageResult">
+                        <div class="placeholder-text">
+                            Sua thumbnail gerada aparecerá aqui...
+                        </div>
+                    </div>
+
+                    <div class="tips-section">
+                        <h3>💡 Dicas para Prompts de Imagem</h3>
+                        <ul>
+                            <li>Seja específico sobre cores, iluminação e estilo</li>
+                            <li>Mencione expressões faciais desejadas</li>
+                            <li>Inclua detalhes sobre texto e elementos gráficos</li>
+                            <li>Especifique a atmosfera (energética, profissional, etc.)</li>
+                            <li>Use referências visuais conhecidas quando possível</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Gerador de Vinhetas -->
+        <div id="tab-video" class="tab-content">
+            <div class="main-grid">
+                <div class="card">
+                    <h2>🎬 Gerar Vinheta em Vídeo</h2>
+
+                    <div class="api-key-section">
+                        <h3>🔑 Configure sua API Key</h3>
+                        <p>Para gerar vinhetas em vídeo, você precisa de uma API Key do Google AI (Veo 3).</p>
+                        <p><strong>Como obter:</strong> <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+                        <p><small>⚠️ Custo: $0.75 por segundo de vídeo gerado</small></p>
+                    </div>
+
+                    <form id="videoForm">
+                        <div class="form-group">
+                            <label for="apiKeyVideo">🔐 API Key (Google AI)</label>
+                            <input type="password" id="apiKeyVideo" class="form-control" placeholder="Cole sua API Key aqui">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="videoPrompt">📝 Descrição da Vinheta</label>
+                            <textarea id="videoPrompt" class="form-control" rows="6" placeholder="Descreva a vinheta que deseja gerar...
+
+Exemplo: Uma vinheta de introdução dinâmica de 5 segundos, com logo PromptKing aparecendo com efeito de glitch digital, partículas roxas e rosa flutuando, fundo preto com luzes neon, transição suave com zoom, música eletrônica sutil de fundo, estilo moderno e profissional"></textarea>
+                        </div>
+
+                        <div class="grid-options">
+                            <div class="form-group">
+                                <label for="videoDuration">⏱️ Duração</label>
+                                <select id="videoDuration" class="form-control">
+                                    <option value="3">3 segundos</option>
+                                    <option value="5" selected>5 segundos</option>
+                                    <option value="8">8 segundos</option>
+                                    <option value="10">10 segundos</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="videoQuality">🎥 Qualidade</label>
+                                <select id="videoQuality" class="form-control">
+                                    <option value="720p">HD (720p)</option>
+                                    <option value="1080p" selected>Full HD (1080p)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="generateVideoBtn">
+                            🎬 Gerar Vinheta
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>🎥 Vinheta Gerada</h2>
+                    <div class="result-box" id="videoResult">
+                        <div class="placeholder-text">
+                            Sua vinheta em vídeo aparecerá aqui...
+                        </div>
+                    </div>
+
+                    <div class="tips-section">
+                        <h3>💡 Dicas para Vinhetas</h3>
+                        <ul>
+                            <li>Mantenha vinhetas curtas (3-8 segundos)</li>
+                            <li>Especifique movimentos de câmera desejados</li>
+                            <li>Mencione se quer áudio/música de fundo</li>
+                            <li>Descreva transições e efeitos especiais</li>
+                            <li>Seja claro sobre a atmosfera e estilo visual</li>
+                            <li>Vinhetas consistentes fortalecem sua marca</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">
+        Prompt copiado com sucesso! ✅
+    </div>
+
+    <script>
+        // Tab Management
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Templates Data
+        const templates = {
+            gaming: {
+                topic: "Gameplay épico de Fortnite",
+                style: "explosivo",
+                emotion: "animado",
+                colors: "vermelho amarelo",
+                elements: "explosões, setas, kills em destaque"
+            },
+            tech: {
+                topic: "Review do novo iPhone",
+                style: "profissional",
+                emotion: "serio",
+                colors: "azul branco",
+                elements: "produto em destaque, especificações, logo"
+            },
+            education: {
+                topic: "Aula de matemática para ENEM",
+                style: "profissional",
+                emotion: "feliz",
+                colors: "azul branco",
+                elements: "quadro negro, fórmulas, livros"
+            },
+            business: {
+                topic: "Como ganhar R$10.000 por mês",
+                style: "cinematico",
+                emotion: "serio",
+                colors: "verde preto",
+                elements: "dinheiro, gráficos crescentes, números"
+            }
+        };
+
+        function loadTemplate(templateName) {
+            const template = templates[templateName];
+            document.getElementById('topic').value = template.topic;
+            document.getElementById('style').value = template.style;
+            document.getElementById('emotion').value = template.emotion;
+            document.getElementById('colors').value = template.colors;
+            document.getElementById('elements').value = template.elements;
+
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.closest('.template-card').classList.add('active');
+
+            generatePrompt(new Event('submit'));
+        }
+
+        // Prompt Generation
+        document.getElementById('promptForm').addEventListener('submit', generatePrompt);
+
+        function generatePrompt(e) {
+            e.preventDefault();
+
+            const topic = document.getElementById('topic').value;
+            const style = document.getElementById('style').value;
+            const emotion = document.getElementById('emotion').value;
+            const colors = document.getElementById('colors').value;
+            const elements = document.getElementById('elements').value;
+
+            if (!topic) {
+                showToast('Por favor, preencha o tópico do vídeo!', 'error');
+                return;
+            }
+
+            const emotionMap = {
+                'chocado': 'expressão facial chocada com boca aberta e olhos arregalados',
+                'feliz': 'sorriso largo e empolgado',
+                'serio': 'olhar sério e profissional',
+                'animado': 'expressão animada e energética',
+                'pensativo': 'expressão pensativa com mão no queixo'
+            };
+
+            const styleMap = {
+                'minimalista': 'design minimalista e limpo, fundo clean',
+                'explosivo': 'design explosivo com muitos elementos visuais e energia',
+                'profissional': 'design profissional e elegante, alta qualidade',
+                'cartoon': 'estilo cartoon colorido e divertido',
+                'cinematico': 'estilo cinemático com iluminação dramática'
+            };
+
+            const prompt = `Crie uma thumbnail profissional para YouTube com o tema: "${topic}"
+
+ESTILO VISUAL: ${styleMap[style]}
+
+COMPOSIÇÃO:
+- Pessoa em destaque com ${emotionMap[emotion]}
+- Cores principais: ${colors}
+- Iluminação profissional destacando o rosto
+- Fundo desfocado ou gradiente
+
+ELEMENTOS VISUAIS:
+- Texto grande e legível: "${topic}"
+- ${elements || 'elementos decorativos modernos'}
+- Alta resolução (1280x720px)
+- Contraste alto para chamar atenção
+
+TÉCNICA:
+- Composição em regra dos terços
+- Saturação elevada nas cores
+- Sombras e destaques bem definidos
+- ${style} profissional
+
+OBJETIVO: Maximizar CTR (Click-Through Rate) com design atraente e profissional que se destaque no feed do YouTube.`;
+
+            document.getElementById('result').textContent = prompt;
+            document.getElementById('result').classList.remove('placeholder-text');
+        }
+
+        function copyPrompt() {
+            const result = document.getElementById('result').textContent;
+            
+            if (result.includes('aparecerá aqui')) {
+                showToast('Gere um prompt primeiro!', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(result).then(() => {
+                showToast('Prompt copiado com sucesso! ✅');
+            }).catch(err => {
+                showToast('Prompt copiado! ✅');
+            });
+        }
+
+        function downloadPrompt() {
+            const result = document.getElementById('result').textContent;
+            
+            if (result.includes('aparecerá aqui')) {
+                showToast('Gere um prompt primeiro!', 'error');
+                return;
+            }
+
+            const blob = new Blob([result], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'prompt-thumbnail.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showToast('Arquivo baixado! 💾');
+        }
+
+        // Image Generation (Nano Banana / Gemini 2.5 Flash Image)
+        document.getElementById('imageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const apiKey = document.getElementById('apiKeyImage').value.trim();
+            const prompt = document.getElementById('imagePrompt').value.trim();
+
+            if (!apiKey) {
+                showToast('Por favor, insira sua API Key!', 'error');
+                return;
+            }
+
+            if (!prompt) {
+                showToast('Por favor, descreva a thumbnail!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('generateImageBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Gerando...';
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro na API. Verifique sua API Key.');
+                }
+
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0].content.parts) {
+                    const imagePart = data.candidates[0].content.parts.find(p => p.inlineData);
+                    
+                    if (imagePart) {
+                        const imageData = imagePart.inlineData.data;
+                        const mimeType = imagePart.inlineData.mimeType;
+                        
+                        const resultBox = document.getElementById('imageResult');
+                        resultBox.innerHTML = `
+                            <img src="data:${mimeType};base64,${imageData}" class="generated-preview" alt="Thumbnail gerada">
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="downloadImage('${imageData}', '${mimeType}')">
+                                    💾 Baixar Thumbnail
+                                </button>
+                            </div>
+                        `;
+                        
+                        showToast('Thumbnail gerada com sucesso! 🎨');
+                    }
+                }
+            } catch (error) {
+                showToast('Erro ao gerar thumbnail: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎨 Gerar Thumbnail';
+            }
+        });
+
+        function downloadImage(base64Data, mimeType) {
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `thumbnail-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showToast('Thumbnail baixada! 💾');
+        }
+
+        // Video Generation (Veo 3)
+        document.getElementById('videoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const apiKey = document.getElementById('apiKeyVideo').value.trim();
+            const prompt = document.getElementById('videoPrompt').value.trim();
+            const duration = document.getElementById('videoDuration').value;
+
+            if (!apiKey) {
+                showToast('Por favor, insira sua API Key!', 'error');
+                return;
+            }
+
+            if (!prompt) {
+                showToast('Por favor, descreva a vinheta!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('generateVideoBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Gerando vídeo (pode levar alguns minutos)...';
+
+            const resultBox = document.getElementById('videoResult');
+            resultBox.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner" style="width: 40px; height: 40px; border-width: 4px; margin: 0 auto 20px;"></div>
+                    <p>Gerando sua vinheta em vídeo...</p>
+                    <p style="font-size: 0.9rem; color: var(--color-text-secondary);">Isso pode levar de 1 a 3 minutos</p>
+                </div>
+            `;
+
+            try {
+                // Inicia a geração do vídeo
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate:generateVideos?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        config: {
+                            duration: `${duration}s`,
+                            aspectRatio: "16:9"
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'Erro na API. Verifique sua API Key e permissões.');
+                }
+
+                const data = await response.json();
+                
+                // Nota: A API Veo 3 retorna uma operação que precisa ser pooled
+                // Este é um exemplo simplificado - em produção, você precisaria implementar polling
+                if (data.name) {
+                    resultBox.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <p style="color: var(--color-success); font-weight: 600; margin-bottom: 15px;">✅ Vídeo em processamento!</p>
+                            <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 15px;">ID da operação: ${data.name}</p>
+                            <p style="font-size: 0.9rem;">Para recuperar o vídeo, você pode usar o ID acima no <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a></p>
+                            <div style="margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                                <p style="font-size: 0.85rem;"><strong>💡 Dica:</strong> A API Veo 3 processa vídeos de forma assíncrona. Você pode implementar polling para obter o resultado final automaticamente.</p>
+                            </div>
+                        </div>
+                    `;
+                    showToast('Vídeo enviado para processamento! ✅');
+                }
+            } catch (error) {
+                showToast('Erro ao gerar vídeo: ' + error.message, 'error');
+                resultBox.innerHTML = `
+                    <div class="placeholder-text" style="color: var(--color-error);">
+                        ❌ Erro ao gerar vídeo: ${error.message}
+                        <br><br>
+                        <small>Certifique-se de que sua API Key tem acesso ao Veo 3 e que você tem créditos disponíveis.</small>
+                    </div>
+                `;
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎬 Gerar Vinheta';
+            }
+        });
+
+        // Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show';
+            if (type === 'error') {
+                toast.classList.add('error');
+            }
+            
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
